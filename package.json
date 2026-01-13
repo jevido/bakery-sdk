@@ -1,0 +1,24 @@
+{
+  "name": "jevido-sdk",
+  "version": "0.1.0",
+  "author": "Jeffrey Duivenvoorden",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jevido/bakery-sdk.git"
+  },
+  "main": "index.js",
+  "devDependencies": {
+    "prettier": "^3.7.4"
+  },
+  "bugs": {
+    "url": "https://github.com/jevido/bakery-sdk/issues"
+  },
+  "description": "An proxy based sdk generator for openapi specifications",
+  "homepage": "https://github.com/jevido/bakery-sdk#readme",
+  "license": "MIT",
+  "scripts": {
+    "format": "prettier --write .",
+    "test": "bun test"
+  },
+  "type": "module"
+}
