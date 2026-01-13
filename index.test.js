@@ -62,3 +62,19 @@ test("adds bearer token when set on the sdk", async () => {
   expect(loginCall).toBeDefined();
   expect(loginCall.options.headers.Authorization).toBe("Bearer token-123");
 });
+
+test("patches a user by id with a payload", async () => {
+  const sdk = await createSDK(openapiUrl);
+  const payload = { email: "something@awesome.com" };
+
+  const result = await sdk.users[42069].patch(payload);
+
+  expect(result).toEqual({ ok: true });
+  expect(fetchCalls[0].url).toBe(openapiUrl);
+  expect(fetchCalls[1].url).toBe(`${baseUrl}/users/42069`);
+  expect(fetchCalls[1].options.method).toBe("PATCH");
+  expect(fetchCalls[1].options.headers["Content-Type"]).toBe(
+    "application/json",
+  );
+  expect(fetchCalls[1].options.body).toBe(JSON.stringify(payload));
+});

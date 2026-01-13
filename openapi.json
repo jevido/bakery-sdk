@@ -21,6 +21,13 @@
             "description": "OK"
           }
         }
+      },
+      "patch": {
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     }
   }
