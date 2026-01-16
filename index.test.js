@@ -5,7 +5,7 @@ import { createSDK } from "./index.js";
 const openapiUrl = "https://api.local/openapi.json";
 const baseUrl = "https://api.local";
 const spec = JSON.parse(
-  await readFile(new URL("./openapi.json", import.meta.url), "utf8"),
+  await readFile(new URL("./openapi.json", import.meta.url), "utf8")
 );
 
 let originalFetch;
@@ -45,7 +45,7 @@ test("posts login payload using the openapi base url", async () => {
   expect(fetchCalls[1].url).toBe(`${baseUrl}/auth/login`);
   expect(fetchCalls[1].options.method).toBe("POST");
   expect(fetchCalls[1].options.headers["Content-Type"]).toBe(
-    "application/json",
+    "application/json"
   );
   expect(fetchCalls[1].options.body).toBe(JSON.stringify(payload));
 });
@@ -57,7 +57,7 @@ test("adds bearer token when set on the sdk", async () => {
   await sdk.auth.login.post({ email: "me@example.com", password: "secret" });
 
   const loginCall = fetchCalls.find(
-    (call) => call.url === `${baseUrl}/auth/login`,
+    (call) => call.url === `${baseUrl}/auth/login`
   );
   expect(loginCall).toBeDefined();
   expect(loginCall.options.headers.Authorization).toBe("Bearer token-123");
@@ -74,7 +74,49 @@ test("patches a user by id with a payload", async () => {
   expect(fetchCalls[1].url).toBe(`${baseUrl}/users/42069`);
   expect(fetchCalls[1].options.method).toBe("PATCH");
   expect(fetchCalls[1].options.headers["Content-Type"]).toBe(
-    "application/json",
+    "application/json"
   );
   expect(fetchCalls[1].options.body).toBe(JSON.stringify(payload));
+});
+
+test("translates get payload into url search parameters", async () => {
+  const sdk = await createSDK(openapiUrl);
+
+  await sdk.users.get({
+    page: 2,
+    limit: 25,
+    search: "john",
+  });
+
+  expect(fetchCalls[0].url).toBe(openapiUrl);
+
+  const getCall = fetchCalls[1];
+  expect(getCall).toBeDefined();
+
+  expect(getCall.url).toBe(`${baseUrl}/users?page=2&limit=25&search=john`);
+
+  expect(getCall.options.method).toBe("GET");
+  expect(getCall.options.body).toBeUndefined();
+});
+
+test("skips undefined and null query params", async () => {
+  const sdk = await createSDK(openapiUrl);
+
+  await sdk.users.get({
+    page: 1,
+    filter: undefined,
+    q: null,
+  });
+
+  expect(fetchCalls[1].url).toBe(`${baseUrl}/users?page=1`);
+});
+
+test("supports array query parameters", async () => {
+  const sdk = await createSDK(openapiUrl);
+
+  await sdk.users.get({ role: ["admin", "moderator"] });
+
+  expect(fetchCalls[1].url).toBe(
+    `${baseUrl}/users?role=admin&role=moderator`,
+  );
 });
