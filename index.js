@@ -104,7 +104,13 @@ function createCaller({ spec, baseUrl, cache, getToken, path, method }) {
       );
     }
 
-    const url = buildUrl(baseUrl, openapiPath, path);
+    let url = buildUrl(baseUrl, openapiPath, path);
+
+    // GET payload → query parameters
+    if (method === "get" && payload !== undefined) {
+      url += buildQueryString(payload);
+    }
+
     const hasBody = ["post", "put", "patch"].includes(method);
 
     const headers = {
@@ -189,13 +195,44 @@ function buildUrl(baseUrl, template, actualSegments) {
   return url;
 }
 
-function buildCacheKey(openapiPath, pathSegments, payload) {
-  const payloadKey =
-    payload && typeof payload === "object"
-      ? JSON.stringify(payload)
-      : (payload ?? "");
+function buildQueryString(params) {
+  if (!params || typeof params !== "object") return "";
 
-  return `${openapiPath}|${pathSegments.join("/") ?? ""}|${payloadKey}`;
+  const search = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null) continue;
+
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        search.append(key, String(v));
+      }
+    } else {
+      search.append(key, String(value));
+    }
+  }
+
+  const qs = search.toString();
+  return qs ? `?${qs}` : "";
+}
+
+function buildCacheKey(openapiPath, pathSegments, payload) {
+  let payloadKey = "";
+
+  if (payload && typeof payload === "object") {
+    payloadKey = JSON.stringify(
+      Object.keys(payload)
+        .sort()
+        .reduce((acc, key) => {
+          acc[key] = payload[key];
+          return acc;
+        }, {}),
+    );
+  } else {
+    payloadKey = payload ?? "";
+  }
+
+  return `${openapiPath}|${pathSegments.join("/")}|${payloadKey}`;
 }
 
 function createResource(initialData) {
