@@ -126,6 +126,7 @@ function createCaller({ spec, baseUrl, cache, getToken, path, method }) {
 
     const res = await fetch(url, {
       method: method.toUpperCase(),
+      credentials: "include",
       headers,
       body,
     });
